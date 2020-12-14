@@ -1,8 +1,6 @@
 import { Post } from "../entities/Post";
 import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import { MyContext } from "../types";
-import { title } from "process";
-import { triggerAsyncId } from "async_hooks";
 
 @Resolver()
 export class PostResolver {
