@@ -8,6 +8,10 @@ export class User {
   @PrimaryKey()
   id!: number;
 
+  @Field()
+  @Property({ type: "text", unique: true })
+  email!: string;
+
   @Field(() => String)
   @Property({ type: "date" })
   createdAt = new Date();

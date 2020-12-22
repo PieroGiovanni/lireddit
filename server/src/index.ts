@@ -13,6 +13,7 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import cors from "cors";
+import { User } from "./entities/User";
 
 const main = async () => {
   const orm = await MikroORM.init(microConfig);
