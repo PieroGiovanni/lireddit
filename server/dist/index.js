@@ -61,7 +61,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, user_1.UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ em: req, res, redis }),
+        context: ({ req, res }) => ({ req, res, redis }),
     });
     apolloServer.applyMiddleware({
         app,
