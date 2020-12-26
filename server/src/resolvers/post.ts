@@ -1,32 +1,51 @@
 import { Post } from "../entities/Post";
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  Field,
+  InputType,
+  Mutation,
+  Query,
+  Resolver,
+  UseMiddleware,
+} from "type-graphql";
 import { MyContext } from "../types";
+import { isAuth } from "../middleware/isAuth";
 
+@InputType()
+class PostInput {
+  @Field()
+  title: string;
+
+  @Field()
+  text: string;
+}
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    return em.find(Post, {});
+  posts(): Promise<Post[]> {
+    return Post.find();
   }
 
   @Query(() => Post, { nullable: true })
   post(
-    @Arg("id", () => Int)
-    id: number,
-    @Ctx() { em }: MyContext
-  ): Promise<Post | null> {
-    return em.findOne(Post, { id });
+    @Arg("id")
+    id: number
+  ): Promise<Post | undefined> {
+    return Post.findOne(id);
   }
 
   @Mutation(() => Post)
+  @UseMiddleware(isAuth)
   async createPost(
-    @Arg("tittle")
-    title: string,
-    @Ctx() { em }: MyContext
+    @Arg("input")
+    input: PostInput,
+    @Ctx() { req }: MyContext
   ): Promise<Post> {
-    const post = em.create(Post, { title });
-    await em.persistAndFlush(post);
-    return post;
+    return Post.create({
+      ...input,
+      creatorId: req.session.userId,
+    }).save();
   }
 
   @Mutation(() => Post)
@@ -34,16 +53,14 @@ export class PostResolver {
     @Arg("id")
     id: number,
     @Arg("tittle", () => String, { nullable: true })
-    title: string,
-    @Ctx() { em }: MyContext
+    title: string
   ): Promise<Post | null> {
-    const post = await em.findOne(Post, { id });
+    const post = await Post.findOne(id);
     if (!post) {
       return null;
     }
     if (typeof title !== "undefined") {
-      post.title = title;
-      em.persistAndFlush(post);
+      await Post.update({ id }, { title });
     }
 
     return post;
@@ -52,11 +69,9 @@ export class PostResolver {
   @Mutation(() => Boolean)
   async deletePost(
     @Arg("id")
-    id: number,
-
-    @Ctx() { em }: MyContext
+    id: number
   ): Promise<boolean> {
-    em.nativeDelete(Post, { id });
+    Post.delete(id);
     return true;
   }
 }
